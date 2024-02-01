@@ -11,3 +11,11 @@ The user must select one of the options of which they think the was done to thei
 The options are: Factorial, Number * 2, sum of the factors, or, just some magic.
 The program will continue to run until they have selected the correct option.
 When the correct answer is inputted "Correct!" will appear and the program will end.
+
+Yanni Turnquest
+Added Python dice roll script to repository
+
+The script asks the user if they want to roll a dice.
+If the user enters yes the script chooses a random number from 1 to 6.
+Mimicking a real dice roll.
+If the user enters no the script will end.
