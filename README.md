@@ -24,3 +24,11 @@ Yanni Turnquest
 Added new functions to python quiz
 
 Created the multiplyTwo, factorize, and magic functions to be implemented in the quiz.
+
+Vraj Suthar
+Added Python weather script to repository
+
+This code asks user which weather they like winter or fall.
+As I have imported random it will take a random guess inbetween those two seasons.
+And print the outcome.
+Afterwards asking if they want to continue or not.
