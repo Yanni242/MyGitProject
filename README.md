@@ -22,3 +22,5 @@ If the user enters no the script will end.
 
 Yanni Turnquest
 Added new functions to python quiz
+
+Created the multiplyTwo, factorize, and magic functions to be implemented in the quiz.
