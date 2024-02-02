@@ -16,7 +16,8 @@ Created on Thu Oct 26 11:19:51 2023
 # Date: <2023-10-26 / 2023-10-26>
 # I certify that this code is my own. I have not broken any rules concerning Academic Dishonesty.
 #########################
-
+import random
+import operator
 
 def SumFactors(x):
     sumOfFactor = 0
@@ -24,6 +25,27 @@ def SumFactors(x):
         if x % y == 0:
             sumOfFactor += y
     return sumOfFactor
+
+def multiplyTwo(x):
+    num = x
+    num *= 2
+    return num
+
+def factorize(x):
+    result = 1
+    for i in range(2, x + 1):
+        result *= i
+    return result
+
+def magic(x):
+    # Dictionary mapping operations to their corresponding functions
+    ops = {'+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.truediv}
+    
+    # Select a random operation
+    op = random.choice(list(ops.keys()))
+    rand_num = random.randint(1, 20)
+    result = ops[op](x, rand_num)
+    return result
 
 
 def quiz():
