@@ -19,3 +19,6 @@ The script asks the user if they want to roll a dice.
 If the user enters yes the script chooses a random number from 1 to 6.
 Mimicking a real dice roll.
 If the user enters no the script will end.
+
+Yanni Turnquest
+Added new functions to python quiz
