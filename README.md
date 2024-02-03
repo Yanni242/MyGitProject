@@ -32,3 +32,7 @@ This code asks user which weather they like winter or fall.
 As I have imported random it will take a random guess inbetween those two seasons.
 And print the outcome.
 Afterwards asking if they want to continue or not.
+
+
+Seth Blundell added new function to dice game
+A counter to keep track of your total score 
