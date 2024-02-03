@@ -4,7 +4,7 @@ def roll_single_dice():
     return random.randint(1,6)
 
 def get_user_input(prompt):
-    While True:
+    while True:
         user_input = input(prompt).strip().lower()
         if user_input in ["yes", "no"]:
             return user_input
