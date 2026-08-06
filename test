@@ -1,0 +1,102 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
+
+# ---------------------------------------------------------
+# DATA LOADING & CLEANING (Runs only once for speed)
+# ---------------------------------------------------------
+def load_and_combine_excel(file_path):
+    print(f"Opening large Excel file. This may take a few minutes...")
+    
+    # Load the Excel file structure (doesn't read all data into memory yet)
+    xls = pd.ExcelFile(file_path)
+    
+    df_list = []
+    
+    # Loop through every sheet in the file
+    for sheet_name in xls.sheet_names:
+        print(f"Reading sheet: {sheet_name}...")
+        
+        # header=None tells Pandas there are no headings.
+        # names=[...] assigns the headings to Columns A, B, and C.
+        df_sheet = pd.read_excel(
+            xls, 
+            sheet_name=sheet_name, 
+            header=None, 
+            names=['Date', 'MW', 'MVARS']
+        )
+        df_list.append(df_sheet)
+        
+    print("Combining all sheets into one master dataset...")
+    # Combine all sheets into one single DataFrame
+    full_df = pd.concat(df_list, ignore_index=True)
+    
+    # Clean the combined data
+    print("Cleaning data...")
+    full_df['MW'] = pd.to_numeric(full_df['MW'], errors='coerce')
+    full_df['MVARS'] = pd.to_numeric(full_df['MVARS'], errors='coerce')
+    full_df = full_df.dropna(subset=['MW', 'MVARS'])
+    
+    print("Data ready! Moving to graphs...")
+    return full_df
+
+# ---------------------------------------------------------
+# GRAPH 1: LOAD DURATION CURVE
+# ---------------------------------------------------------
+def create_load_duration_curve(df):
+    print("Generating Load Duration Curve...")
+    mw_sorted = np.sort(df['MW'])
+    mvar_sorted = np.sort(df['MVARS'])
+    x_time = np.linspace(0, 1, len(df))
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(x_time, mw_sorted, label='MW', color='#1A476F', linewidth=2.5)   
+    ax.plot(x_time, mvar_sorted, label='MVAr', color='#E05A44', linewidth=2.5) 
+
+    ax.set_xlim(0, 1)
+    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.xaxis.set_minor_locator(MultipleLocator(0.025))
+    ax.yaxis.set_minor_locator(MultipleLocator(0.5)) 
+    ax.grid(which='major', color='black', linestyle='-', linewidth=0.5, alpha=0.5)
+    ax.grid(which='minor', color='black', linestyle='-', linewidth=0.2, alpha=0.5)
+
+    ax.set_xlabel('% Time', fontsize=12, fontweight='bold')
+    ax.set_ylabel('MW & MVAr', fontsize=12, fontweight='bold')
+    ax.set_title('Substation Load Duration', fontsize=16, fontweight='bold')
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), frameon=False)
+
+    plt.tight_layout()
+    plt.show()
+
+# ---------------------------------------------------------
+# GRAPH 2: TIME-STEP VARIATIONS
+# ---------------------------------------------------------
+def create_variation_curve(df):
+    print("Generating Variations Curve...")
+    intervals = {'1s': 1, '5s': 5, '10s': 10, '30s': 30, '60s': 60, '600s': 600}
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for label, periods in intervals.items():
+        variation = df['MW'].diff(periods=periods).dropna()
+        variation_sorted = np.sort(variation)
+        x_percentile = np.linspace(0, 1, len(variation_sorted))
+        ax.plot(x_percentile, variation_sorted, label=label, linewidth=2)
+
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-2, 2) # You may need to increase these numbers for the massive dataset
+    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.yaxis.set_major_locator(MultipleLocator(0.5))
+    ax.grid(which='major', color='black', linestyle='-', linewidth=0.5, alpha=0.5)
+
+    ax.set_xlabel('Percentile', fontsize=12, fontweight='bold')
+    ax.set_ylabel('MW', fontsize=12, fontweight='bold')
+    ax.set_title('904L Variations - MW', fontsize=16, fontweight='bold')
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), frameon=False)
+
+    plt.tight_layout()
+    plt.show()
+
+# ---------------------------------------------------------
+# 
