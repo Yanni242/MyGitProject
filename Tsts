@@ -1,0 +1,111 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
+
+# ---------------------------------------------------------
+# DATA LOADING, TIME FILTERING & CONVERSION
+# ---------------------------------------------------------
+def load_and_filter_data(file_path):
+    print("Opening daily Excel file...")
+    
+    # Read the file (Assumes row 1 contains headers like 'Time', 'Recloser 1', etc.)
+    df = pd.read_excel(file_path)
+    
+    # Identify the time column (assumed to be the very first one)
+    time_col = df.columns[0]
+    
+    # Convert to datetime and set as the index for time-slicing
+    df[time_col] = pd.to_datetime(df[time_col], errors='coerce')
+    df = df.dropna(subset=[time_col]) 
+    df.set_index(time_col, inplace=True)
+    
+    print("Filtering data for 07:15:00 to 19:15:00...")
+    # TIME FILTER: Extracts only the exact window requested
+    df = df.between_time('07:15', '19:15').copy()
+    
+    print("Converting all reclosers from kW to MW...")
+    # Loop through all remaining columns (reclosers) and convert
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce') / 1000.0
+        
+    # Drop rows where all recloser data is missing
+    df = df.dropna(how='all')
+    
+    print("Data ready! Moving to graphs...")
+    return df
+
+# ---------------------------------------------------------
+# GRAPH 1: LOAD DURATION CURVE (Single Recloser)
+# ---------------------------------------------------------
+def create_load_duration_curve(df, recloser_name):
+    print(f"Generating Load Duration Curve for {recloser_name}...")
+    
+    # Drop blanks for this specific recloser before sorting
+    clean_data = df[recloser_name].dropna()
+    mw_sorted = np.sort(clean_data)
+    x_time = np.linspace(0, 1, len(mw_sorted))
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(x_time, mw_sorted, label=f'{recloser_name} (MW)', color='#1A476F', linewidth=2.5)   
+
+    ax.set_xlim(0, 1)
+    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.xaxis.set_minor_locator(MultipleLocator(0.025))
+    ax.yaxis.set_minor_locator(AutoMinorLocator()) 
+    
+    ax.grid(which='major', color='black', linestyle='-', linewidth=0.5, alpha=0.5)
+    ax.grid(which='minor', color='black', linestyle='-', linewidth=0.2, alpha=0.5)
+
+    ax.set_xlabel('% Time', fontsize=12, fontweight='bold')
+    ax.set_ylabel('MW', fontsize=12, fontweight='bold')
+    ax.set_title(f'{recloser_name} - Load Duration', fontsize=16, fontweight='bold')
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), frameon=False)
+
+    plt.tight_layout()
+    plt.show()
+
+# ---------------------------------------------------------
+# GRAPH 2: TIME-STEP VARIATIONS (Single Recloser)
+# ---------------------------------------------------------
+def create_variation_curve(df, recloser_name):
+    print(f"Generating Variations Curve for {recloser_name}...")
+    intervals = {'1s': 1, '5s': 5, '10s': 10, '30s': 30, '60s': 60, '600s': 600}
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for label, periods in intervals.items():
+        # Calculate diffs using the specific recloser column
+        variation = df[recloser_name].diff(periods=periods).dropna()
+        variation_raw = np.asarray(variation)
+        variation_sorted = np.sort(variation_raw)
+        
+        x_percentile = np.linspace(0, 1, len(variation_sorted))
+        ax.plot(x_percentile, variation_sorted, label=label, linewidth=2)
+
+    ax.set_xlim(0, 1)
+    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.grid(which='major', color='black', linestyle='-', linewidth=0.5, alpha=0.5)
+
+    ax.set_xlabel('Percentile', fontsize=12, fontweight='bold')
+    ax.set_ylabel('MW', fontsize=12, fontweight='bold')
+    ax.set_title(f'{recloser_name} - Variations', fontsize=16, fontweight='bold')
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), frameon=False)
+
+    plt.tight_layout()
+    plt.show()
+
+# ---------------------------------------------------------
+# EXECUTION BLOCK
+# ---------------------------------------------------------
+if __name__ == "__main__":
+    master_file = r'C:\Users\YourUsername\Downloads\your_daily_file.xlsx'
+    
+    # 1. Load and filter the data
+    master_data = load_and_filter_data(master_file)
+    
+    # 2. Loop through every column (except the time index) and graph it
+    for column_name in master_data.columns:
+        create_load_duration_curve(master_data, column_name)
+        create_variation_curve(master_data, column_name)
